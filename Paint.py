@@ -55,6 +55,9 @@ points_chunks = []
 removed_points_chunks = []
 ri = 0
 i = 0
+colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+current_color = 0
+time_since_last_save = 0
 
 while True:
     screen.fill((0, 0, 0))
@@ -91,8 +94,17 @@ while True:
                 for points in points_chunks:
                     for point in points:
                         if points.index(point) != 0:
-                            draw.line((point[0], point[1], points[points.index(point) - 1][0], points[points.index(point) - 1][1]), (255, 0, 0), 2)
+                            draw.line((point[0], point[1], points[points.index(point) - 1][0], points[points.index(point) - 1][1]), point[2], 2)
                 image.save(f"{filepath}.edited.png")
+
+            elif e.key == pygame.K_1:
+                current_color = 0
+            
+            elif e.key == pygame.K_2:
+                current_color = 1
+
+            elif e.key == pygame.K_3:
+                current_color = 2
 
         if e.type == pygame.MOUSEBUTTONDOWN:
             points_chunks.append([])
@@ -130,14 +142,25 @@ while True:
         mx, my = pygame.mouse.get_pos()
         if mx < image.width and my < image.width:
             if (mx, my) not in points_chunks[i]:
-                points_chunks[i].append((mx, my))
+                points_chunks[i].append((mx, my, colors[current_color]))
         
     for points in points_chunks:
         for idx, point in enumerate(points):
             if idx != 0:
-                pygame.draw.line(screen, (255, 0, 0), points[idx - 1], point, 3)
+                pygame.draw.line(screen, point[2], (points[idx - 1][0], points[idx - 1][1]), (point[0], point[1]), 3)
 
     screen.blit(text, (0, height - text.get_height()))
+
+    if time_since_last_save >= 5:
+        draw = ImageDraw.Draw(image)
+        for points in points_chunks:
+            for point in points:
+                if points.index(point) != 0:
+                    draw.line((point[0], point[1], points[points.index(point) - 1][0], points[points.index(point) - 1][1]), point[2], 2)
+        image.save(f"{filepath}.edited.png")
+        time_since_last_save = 0
+    
+    time_since_last_save = 1 / clock.get_fps() if clock.get_fps() != 0 else 1 / fps
 
     pygame.display.update()
     clock.tick(fps)
